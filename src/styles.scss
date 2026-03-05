@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "primeicons/primeicons.css";
+
+:root {
+  --primary-color: #f26522; /* Professional Orange */
+  --primary-color-text: #ffffff;
+  --secondary-color: #1e293b; /* Navy */
+  --surface-ground: #f4f7fa;
+  --surface-section: #ffffff;
+  --surface-card: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-border: #e2e8f0;
+  --surface-hover: #f8fafc;
+  --text-color: #1e293b;
+  --text-secondary-color: #64748b;
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --border-radius: 8px;
+}
+
+body {
+  background-color: var(--surface-ground);
+  margin: 0;
+  font-family: var(--font-family);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Enterprise Layout Elements */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.hero-header {
+  background: var(--secondary-color);
+  color: white;
+  padding: 3rem 2rem 1rem 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.main-content {
+  flex: 1;
+  margin-top: 2rem;
+  padding: 0 2rem 0rem 2rem;
+  position: relative;
+  z-index: 20;
+}
+
+/* Modern PrimeNG Component Overrides */
+.p-button {
+  @apply rounded-lg font-semibold transition-all duration-200 !important;
+  padding: 0.6rem 1.2rem;
+}
+
+.p-button.p-button-primary {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.p-inputtext, .p-inputnumber-input, .p-select, .p-multiselect {
+  @apply rounded-lg border-slate-300 transition-all duration-200 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 !important;
+  background: white !important;
+}
+
+.p-card {
+  @apply rounded-xl border-none shadow-sm bg-white overflow-hidden !important;
+  border: 1px solid var(--surface-border) !important;
+}
+
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    font-weight: 700 !important;
+    padding: 1rem !important;
+    border-bottom: 2px solid var(--surface-border) !important;
+  }
+
+  .p-datatable-tbody > tr > td {
+    padding: 1rem !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+}
+
+/* Enterprise Utilities */
+// .field {
+//   @apply mb-4;
+// }
+
+.field-label {
+  @apply block text-xs font-bold text-slate-500 uppercase mb-1 tracking-wider;
+}
+
+.req { @apply text-red-500; }
+.optional { @apply text-slate-400 normal-case font-normal; }
+.err { @apply text-red-500 text-xs mt-1 block; }
+

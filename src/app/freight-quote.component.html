@@ -1,0 +1,564 @@
+<p-toast position="top-right" [life]="5000"></p-toast>
+
+<div class="app-shell">
+
+  <!-- ═══════════════════ HERO HEADER ═══════════════════ -->
+  <header class="hero-header">
+    <div class="hero-inner">
+      <div class="brand">
+        <div class="brand-icon"><i class="pi pi-truck"></i></div>
+        <div>
+          <h1 class="brand-title">FreightQuote <span class="brand-accent">Pro</span></h1>
+          <p class="brand-sub">Enterprise LTL Shipping Intelligence</p>
+        </div>
+      </div>
+
+      <div class="order-search-card">
+        <label class="search-label"><i class="pi pi-search"></i> Quick Order Lookup</label>
+        <div class="search-row">
+          <p-iconField iconPosition="left" class="flex-1">
+            <p-inputIcon styleClass="pi pi-hashtag"></p-inputIcon>
+            <input pInputText [(ngModel)]="orderNumberInput" placeholder="e.g. ORD-12345" class="search-input w-full"
+              (keyup.enter)="onFetchOrder()" />
+          </p-iconField>
+          <p-button label="Fetch Order" icon="pi pi-cloud-download" [loading]="fetchingOrder" (onClick)="onFetchOrder()"
+            styleClass="fetch-btn">
+          </p-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-item"><i class="pi pi-check-circle text-emerald-400"></i><span>8 Carriers</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><i class="pi pi-clock text-blue-400"></i><span>Real-time Quotes</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><i class="pi pi-shield text-purple-400"></i><span>Secure & Reliable</span></div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+  <main class="main-content">
+    <form [formGroup]="quoteForm" (ngSubmit)="onGetQuote()">
+
+      <!-- ── SECTION 1 & 2: ADDRESSES ── -->
+      <div class="section-wrap">
+        <div class="section-header blue-accent">
+          <span class="step-badge">01</span>
+          <div>
+            <h2 class="section-title">Shipment Addresses</h2>
+            <p class="section-desc">Origin pickup and destination delivery details</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Source -->
+          <p-card styleClass="addr-card">
+            <ng-template pTemplate="header">
+              <div class="addr-card-head source-head">
+                <div class="addr-icon-wrap bg-blue-100"><i class="pi pi-arrow-up-right text-blue-600 text-xl"></i></div>
+                <div>
+                  <h3 class="addr-title">Pickup Origin</h3>
+                  <p class="addr-sub">Where is freight being picked up?</p>
+                </div>
+              </div>
+            </ng-template>
+            <div formGroupName="source" class="form-grid">
+              <div class="field col-2">
+                <label class="field-label">Company Name <span class="req">*</span></label>
+                <input pInputText formControlName="companyName" placeholder="Acme Corporation" class="w-full"
+                  [class.ng-invalid]="isInvalid('source.companyName')" />
+                @if (isInvalid('source.companyName')) { <small class="err">Company name is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Contact Name <span class="req">*</span></label>
+                <input pInputText formControlName="contactName" placeholder="John Doe" class="w-full" />
+                @if (isInvalid('source.contactName')) { <small class="err">Contact name is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Phone Number <span class="req">*</span></label>
+                <p-inputMask formControlName="phoneNumber" mask="(999) 999-9999" placeholder="(555) 555-5555"
+                  styleClass="w-full"></p-inputMask>
+                @if (isInvalid('source.phoneNumber')) { <small class="err">Phone number is required</small> }
+              </div>
+              <div class="field col-2">
+                <label class="field-label">Address Line 1 <span class="req">*</span></label>
+                <input pInputText formControlName="addressLine1" placeholder="123 Main Street" class="w-full" />
+                @if (isInvalid('source.addressLine1')) { <small class="err">Address is required</small> }
+              </div>
+              <div class="field col-2">
+                <label class="field-label">Address Line 2 <span class="optional">(optional)</span></label>
+                <input pInputText formControlName="addressLine2" placeholder="Suite, Unit, Floor..." class="w-full" />
+              </div>
+              <div class="field">
+                <label class="field-label">City <span class="req">*</span></label>
+                <input pInputText formControlName="city" placeholder="San Francisco" class="w-full" />
+                @if (isInvalid('source.city')) { <small class="err">City is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">State <span class="req">*</span></label>
+                <p-select [options]="states" formControlName="state" placeholder="Select State" styleClass="w-full"
+                  [filter]="true"></p-select>
+                @if (isInvalid('source.state')) { <small class="err">State is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Postal Code <span class="req">*</span></label>
+                <input pInputText formControlName="postalCode" placeholder="94105" class="w-full" />
+                @if (isInvalid('source.postalCode')) { <small class="err">Valid ZIP code required (e.g. 94105)</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Country <span class="req">*</span></label>
+                <p-select [options]="countries" formControlName="country" placeholder="Select Country"
+                  styleClass="w-full"></p-select>
+                @if (isInvalid('source.country')) { <small class="err">Country is required</small> }
+              </div>
+            </div>
+          </p-card>
+
+          <!-- Destination -->
+          <p-card styleClass="addr-card">
+            <ng-template pTemplate="header">
+              <div class="addr-card-head dest-head">
+                <div class="addr-icon-wrap bg-orange-100"><i class="pi pi-arrow-down-left text-orange-600 text-xl"></i>
+                </div>
+                <div>
+                  <h3 class="addr-title">Delivery Destination</h3>
+                  <p class="addr-sub">Where is freight being delivered?</p>
+                </div>
+              </div>
+            </ng-template>
+            <div formGroupName="destination" class="form-grid">
+              <div class="field col-2">
+                <label class="field-label">Company Name <span class="req">*</span></label>
+                <input pInputText formControlName="companyName" placeholder="Global Distribution Inc." class="w-full" />
+                @if (isInvalid('destination.companyName')) { <small class="err">Company name is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Contact Name <span class="req">*</span></label>
+                <input pInputText formControlName="contactName" placeholder="Jane Smith" class="w-full" />
+                @if (isInvalid('destination.contactName')) { <small class="err">Contact name is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Phone Number <span class="req">*</span></label>
+                <p-inputMask formControlName="phoneNumber" mask="(999) 999-9999" placeholder="(555) 555-5555"
+                  styleClass="w-full"></p-inputMask>
+                @if (isInvalid('destination.phoneNumber')) { <small class="err">Phone number is required</small> }
+              </div>
+              <div class="field col-2">
+                <label class="field-label">Address Line 1 <span class="req">*</span></label>
+                <input pInputText formControlName="addressLine1" placeholder="456 Commerce Drive" class="w-full" />
+                @if (isInvalid('destination.addressLine1')) { <small class="err">Address is required</small> }
+              </div>
+              <div class="field col-2">
+                <label class="field-label">Address Line 2 <span class="optional">(optional)</span></label>
+                <input pInputText formControlName="addressLine2" placeholder="Suite, Unit, Floor..." class="w-full" />
+              </div>
+              <div class="field">
+                <label class="field-label">City <span class="req">*</span></label>
+                <input pInputText formControlName="city" placeholder="Austin" class="w-full" />
+                @if (isInvalid('destination.city')) { <small class="err">City is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">State <span class="req">*</span></label>
+                <p-select [options]="states" formControlName="state" placeholder="Select State" styleClass="w-full"
+                  [filter]="true"></p-select>
+                @if (isInvalid('destination.state')) { <small class="err">State is required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Postal Code <span class="req">*</span></label>
+                <input pInputText formControlName="postalCode" placeholder="78701" class="w-full" />
+                @if (isInvalid('destination.postalCode')) { <small class="err">Valid ZIP code required</small> }
+              </div>
+              <div class="field">
+                <label class="field-label">Country <span class="req">*</span></label>
+                <p-select [options]="countries" formControlName="country" placeholder="Select Country"
+                  styleClass="w-full"></p-select>
+                @if (isInvalid('destination.country')) { <small class="err">Country is required</small> }
+              </div>
+            </div>
+          </p-card>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: ORDER ITEMS ── -->
+      <div class="section-wrap">
+        <div class="section-header green-accent">
+          <span class="step-badge green">02</span>
+          <div>
+            <h2 class="section-title">Order Line Items</h2>
+            <p class="section-desc">Review items from the source order (minimum 2 required)</p>
+          </div>
+        </div>
+        <p-card styleClass="table-card">
+          <p-table [value]="orderItems.controls" styleClass="p-datatable-sm p-datatable-striped" [rowHover]="true">
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="text-left" style="width:60px">#</th>
+                <th class="text-left">Item Description</th>
+                <th class="text-center" style="width:200px">Quantity</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-ctrl let-i="rowIndex">
+              <tr [formGroup]="asFormGroup(ctrl)">
+                <td><span class="row-num">{{ i + 1 }}</span></td>
+                <td>
+                  <input pInputText formControlName="description" class="w-full item-desc-field"
+                    placeholder="Item description" />
+                </td>
+                <td class="text-center">
+                  <p-inputNumber formControlName="quantity" [showButtons]="true" buttonLayout="horizontal"
+                    spinnerMode="horizontal" [min]="1" incrementButtonIcon="pi pi-plus"
+                    decrementButtonIcon="pi pi-minus" styleClass="qty-input">
+                  </p-inputNumber>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="3" class="text-center py-8 text-slate-400">No order items. Please fetch an order or items
+                  will be added manually.</td>
+              </tr>
+            </ng-template>
+          </p-table>
+          <div class="table-footer-note">
+            <i class="pi pi-info-circle text-green-500"></i>
+            <span>Minimum 2 line items required for standard freight quote</span>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- ── SECTION 4: FREIGHT DETAILS ── -->
+      <div class="section-wrap">
+        <div class="section-header purple-accent">
+          <span class="step-badge purple">03</span>
+          <div>
+            <h2 class="section-title">Freight Packaging Details</h2>
+            <p class="section-desc">Provide dimensions, weight, and classification for each package</p>
+          </div>
+          <div class="header-actions ml-auto flex gap-3">
+            <p-button label="Additional Service" icon="pi pi-cog" (onClick)="toggleAdditionalServices()"
+              styleClass="add-pkg-btn" severity="secondary">
+            </p-button>
+            <p-button label="Add Package" icon="pi pi-plus" (onClick)="addFreightItem()" styleClass="add-pkg-btn"
+              severity="secondary">
+            </p-button>
+          </div>
+        </div>
+        <p-card styleClass="table-card overflow-x-auto">
+          <p-table [value]="freightItems.controls" styleClass="p-datatable-sm freight-table" [rowHover]="true"
+            responsiveLayout="scroll">
+
+            <!-- HEADER -->
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width:120px">Type</th>
+
+                <!-- Flexible column -->
+                <th class="description-col">Description</th>
+
+                <th style="width:60px">L (in)</th>
+                <th style="width:60px">W (in)</th>
+                <th style="width:60px">H (in)</th>
+                <th style="width:70px">Wt (lb)</th>
+                <th style="width:55px">Qty</th>
+
+                <th style="width:120px">Class</th>
+                <th style="width:80px">NMFC</th>
+                <th style="width:60px">HAZ</th>
+                <th style="width:60px"></th>
+              </tr>
+            </ng-template>
+
+            <!-- BODY -->
+            <ng-template pTemplate="body" let-ctrl let-i="rowIndex">
+              <tr [formGroup]="asFormGroup(ctrl)">
+
+                <td>
+                  <p-select [options]="packageTypes" formControlName="packageType" placeholder="Type"
+                    styleClass="w-full" appendTo="body">
+                  </p-select>
+                </td>
+
+                <!-- Expanding description -->
+                <td class="description-col">
+                  <input pInputText formControlName="description" class="w-full" placeholder="Description">
+                </td>
+
+                <td>
+                  <input pInputText formControlName="length" class="num-field" />
+                </td>
+
+                <td>
+                  <input pInputText formControlName="width" class="num-field" />
+                </td>
+
+                <td>
+                  <input pInputText formControlName="height" class="num-field" />
+                </td>
+
+                <td>
+                  <input pInputText formControlName="weight" class="num-field" />
+                </td>
+
+                <td>
+                  <input pInputText formControlName="quantity" class="num-field" />
+                </td>
+
+                <td>
+                  <p-select [options]="freightClasses" formControlName="freightClass" styleClass="w-full"
+                    appendTo="body">
+                  </p-select>
+                </td>
+
+                <td>
+                  <input pInputText formControlName="nmfcCode" class="w-full" />
+                </td>
+
+                <td class="text-center">
+                  <p-checkbox formControlName="hazardous" [binary]="true"></p-checkbox>
+                </td>
+
+                <td class="text-center">
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
+                    (onClick)="removeFreightItem(i)">
+                  </p-button>
+                </td>
+
+              </tr>
+            </ng-template>
+
+          </p-table>
+        </p-card>
+      </div>
+
+      <!-- ── SECTION 5: CARRIER SELECTION + GET QUOTE ── -->
+      <div class="section-wrap">
+        <div class="section-header indigo-accent">
+          <span class="step-badge indigo">04</span>
+          <div>
+            <h2 class="section-title">Carrier Selection</h2>
+            <p class="section-desc">Select one or more carriers to receive competitive quotes</p>
+          </div>
+        </div>
+        <p-card styleClass="cta-card">
+          <div class="cta-inner">
+            <div class="carrier-select-wrap">
+              <label class="field-label"><i class="pi pi-truck text-indigo-500"></i> Select Carriers <span
+                  class="req">*</span></label>
+              <p-multiSelect [options]="carriers" formControlName="selectedCarriers"
+                placeholder="Choose carriers to request quotes from..." display="chip" styleClass="w-full carrier-ms"
+                [showToggleAll]="true" [filter]="true" appendTo="body">
+              </p-multiSelect>
+              @if (isInvalid('selectedCarriers')) {
+              <small class="err">Please select at least one carrier</small>
+              }
+            </div>
+            <div class="get-quote-wrap">
+              <p-button type="submit" label="Get Quote" icon="pi pi-send" iconPos="right" [loading]="loading"
+                [disabled]="quoteForm.invalid" styleClass="get-quote-btn w-full">
+              </p-button>
+              <p class="quote-hint">
+                <i class="pi pi-lock text-slate-400"></i>
+                <span>Quotes are generated instantly from live carrier data</span>
+              </p>
+            </div>
+          </div>
+        </p-card>
+      </div>
+
+    </form>
+
+    <!-- ── ADDITIONAL SERVICES DIALOG ── -->
+    <p-dialog header="Additional Services" [(visible)]="displayAdditionalServices" [modal]="true"
+      [style]="{ width: '850px' }" [draggable]="false" [resizable]="false" styleClass="services-dialog">
+      <div [formGroup]="quoteForm">
+        <div formGroupName="additionalServices" class="services-grid">
+          <div class="service-item">
+            <p-toggleSwitch formControlName="callBeforeDelivery"></p-toggleSwitch>
+            <label>Call Before Delivery</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="appointmentDelivery"></p-toggleSwitch>
+            <label>Appointment Delivery</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="residentialDelivery"></p-toggleSwitch>
+            <label>Residential Delivery</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="insideDelivery"></p-toggleSwitch>
+            <label>Inside Delivery</label>
+          </div>
+
+          <div class="service-item">
+            <p-toggleSwitch formControlName="liftgatePickup"></p-toggleSwitch>
+            <label>Liftgate Pickup</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="holidayPickup"></p-toggleSwitch>
+            <label>Holiday Pickup</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="limitedAccessPickup"></p-toggleSwitch>
+            <label>Limited Access Pickup</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="topLoadOnly"></p-toggleSwitch>
+            <label>Top Load Only</label>
+          </div>
+
+          <div class="service-item">
+            <p-toggleSwitch formControlName="overStackPickup"></p-toggleSwitch>
+            <label>Over Stack Pickup</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="overLength"></p-toggleSwitch>
+            <label>Over Length</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="extremeLength"></p-toggleSwitch>
+            <label>Extreme Length</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="overWeight"></p-toggleSwitch>
+            <label>Over Weight</label>
+          </div>
+
+          <div class="service-item">
+            <p-toggleSwitch formControlName="residentialPickup"></p-toggleSwitch>
+            <label>Residential Pickup</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="limitedAccessDelivery"></p-toggleSwitch>
+            <label>Limited Access Delivery</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="liftgateDelivery"></p-toggleSwitch>
+            <label>Liftgate Delivery</label>
+          </div>
+          <div class="service-item">
+            <p-toggleSwitch formControlName="insidePickup"></p-toggleSwitch>
+            <label>Inside Pickup</label>
+          </div>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Close" icon="pi pi-check" (onClick)="displayAdditionalServices = false"
+          styleClass="p-button-primary"></p-button>
+      </ng-template>
+    </p-dialog>
+
+    <!-- ═══════════════════ RESULTS ═══════════════════ -->
+    @if (loading) {
+    <div class="results-loading">
+      <div class="loading-header">
+        <div class="loading-spinner">
+          <div class="spinner-ring"></div>
+        </div>
+        <div>
+          <h2 class="loading-title">Fetching Carrier Quotes...</h2>
+          <p class="loading-sub">Contacting {{ (quoteForm.get('selectedCarriers')?.value || []).length }} carriers for
+            best rates</p>
+        </div>
+      </div>
+      <div class="space-y-3 mt-6">
+        @for (i of [1,2,3,4]; track i) {
+        <p-skeleton height="3.5rem" styleClass="rounded-xl"></p-skeleton>
+        }
+      </div>
+    </div>
+    }
+
+    @if (showResults && !loading) {
+    <div class="results-section">
+      <p-divider></p-divider>
+      <div class="results-header">
+        <div class="results-title-wrap">
+          <div class="results-icon"><i class="pi pi-chart-bar text-2xl text-white"></i></div>
+          <div>
+            <h2 class="results-title">Available Carrier Quotes</h2>
+            <p class="results-sub">{{ quotes.length }} quotes received — sorted by best price</p>
+          </div>
+        </div>
+        @if (quotes.length > 0) {
+        <div class="best-rate-badge">
+          <i class="pi pi-trophy text-amber-500"></i>
+          <span>Best: {{ quotes[0].totalCharge | currency:'USD' }}</span>
+        </div>
+        }
+      </div>
+
+      <p-table [value]="quotes" styleClass="p-datatable-sm results-table" [sortField]="'totalCharge'" [sortOrder]="1"
+        [rowHover]="true">
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="carrierName">Carrier <p-sortIcon field="carrierName"></p-sortIcon></th>
+            <th>Service Type</th>
+            <th pSortableColumn="transitDays">Transit <p-sortIcon field="transitDays"></p-sortIcon></th>
+            <th>Est. Delivery</th>
+            <th pSortableColumn="totalCharge">Base Rate <p-sortIcon field="totalCharge"></p-sortIcon></th>
+            <th>Fuel Surch.</th>
+            <th>Accessorial</th>
+            <th pSortableColumn="totalCharge" class="text-right">Total Charge <p-sortIcon
+                field="totalCharge"></p-sortIcon></th>
+            <th class="text-center" style="width:80px">Select</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-quote let-i="rowIndex">
+          <tr [class.best-row]="i === 0" [class.selected-row]="selectedQuote === quote">
+            <td>
+              <div class="carrier-cell">
+                <div class="carrier-avatar" [class]="'carrier-' + (i % 5)">{{ getCarrierInitials(quote.carrierName) }}
+                </div>
+                <div>
+                  <span class="carrier-name">{{ quote.carrierName }}</span>
+                  @if (i === 0) { <span class="best-badge">BEST</span> }
+                </div>
+              </div>
+            </td>
+            <td><p-tag [value]="quote.serviceType" [severity]="getSeverity(quote.serviceType)"></p-tag></td>
+            <td><span class="transit-days">{{ quote.transitDays }}</span> <span
+                class="text-slate-400 text-xs">days</span></td>
+            <td class="text-slate-600">{{ quote.estimatedDeliveryDate | date:'MMM d, y' }}</td>
+            <td class="text-slate-700">{{ (quote.totalCharge - quote.fuelSurcharge - quote.accessorialCharges) |
+              currency:'USD' }}</td>
+            <td class="text-slate-500">{{ quote.fuelSurcharge | currency:'USD' }}</td>
+            <td class="text-slate-500">{{ quote.accessorialCharges | currency:'USD' }}</td>
+            <td class="text-right">
+              <span class="total-charge" [class.best-charge]="i === 0">{{ quote.totalCharge | currency:'USD' }}</span>
+            </td>
+            <td class="text-center">
+              <p-radioButton name="quoteSelect" [value]="quote" [(ngModel)]="selectedQuote"></p-radioButton>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="9" class="text-center py-10 text-slate-400">No quotes available</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      @if (selectedQuote) {
+      <div class="selected-quote-bar">
+        <i class="pi pi-check-circle text-emerald-500 text-xl"></i>
+        <div class="flex-1">
+          <p class="font-bold text-slate-800">Selected: {{ selectedQuote.carrierName }}</p>
+          <p class="text-sm text-slate-500">{{ selectedQuote.serviceType }} · {{ selectedQuote.transitDays }} day
+            transit · {{ selectedQuote.estimatedDeliveryDate | date:'mediumDate' }}</p>
+        </div>
+        <span class="selected-charge">{{ selectedQuote.totalCharge | currency:'USD' }}</span>
+        <p-button label="Book Shipment" icon="pi pi-arrow-right" iconPos="right" styleClass="book-btn"></p-button>
+      </div>
+      }
+    </div>
+    }
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <span>© 2025 FreightQuote Pro · Enterprise LTL Management System</span>
+  </footer>
+
+</div>
